@@ -1,0 +1,18 @@
+# OpenTofu and Terraform working files. State can hold secrets and IP addresses.
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfplan
+override.tf
+override.tf.json
+
+# Variable files hold your own account details. Only the .example files are committed.
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# Credentials and keys, in case one lands in the folder by accident
+*.pem
+*.key
+.env

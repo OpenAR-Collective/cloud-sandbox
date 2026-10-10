@@ -1,0 +1,13 @@
+# Copy to terraform.tfvars (which git ignores) and fill in.
+owner            = "your-name"
+name             = "benchmark-run"
+region           = "us-east-1"
+ssh_public_key   = "ssh-ed25519 AAAA... you@example.com"
+allowed_ssh_cidr = "203.0.113.7/32"
+
+# 16 vCPUs, 64 GB, local NVMe. Use "m7i.4xlarge" for the same CPU with a network disk.
+instance_type = "m6id.4xlarge"
+
+# A long benchmark pass can take more than a day.
+# The host terminates itself at this limit, so a pass that runs longer loses its results.
+max_lifetime_hours = 36

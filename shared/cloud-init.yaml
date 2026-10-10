@@ -1,0 +1,51 @@
+#cloud-config
+# Shared first-boot configuration for every sandbox host, on any provider.
+# It installs Docker and common diagnostic tools, then stops. Experiment code
+# is pulled and run by hand (or by the experiment's own scripts) after login.
+package_update: true
+packages:
+  - ca-certificates
+  - curl
+  - git
+  - jq
+  - htop
+  - sysstat
+  - postgresql-client
+
+runcmd:
+  - |
+    # If the instance type has local NVMe storage (the AWS "d" families), put Docker's data
+    # there, which includes PostgreSQL volumes. WAL flush latency is part of every command's
+    # cost in commit-bound benchmarks, and local NVMe gives the lowest flush latency.
+    # The data is disposable: it is lost when the instance stops or is terminated.
+    dev=$(ls /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_* 2>/dev/null | head -n 1)
+    if [ -n "$dev" ]; then
+      mkfs.ext4 -F -E nodiscard "$dev"
+      mkdir -p /mnt/nvme
+      echo "$dev /mnt/nvme ext4 noatime,nofail 0 2" >> /etc/fstab
+      mount /mnt/nvme
+      mkdir -p /mnt/nvme/docker /etc/docker
+      echo '{"data-root": "/mnt/nvme/docker"}' > /etc/docker/daemon.json
+    fi
+  - |
+    # Write the facts a benchmark record needs, so no harness has to call the metadata
+    # service. The AWS stack requires token-based (IMDSv2) requests with a hop limit of 1,
+    # which containers cannot make. On providers without that service this step does nothing.
+    mkdir -p /etc/openar-sandbox
+    tok=$(curl -fsS -m 5 -X PUT http://169.254.169.254/latest/api/token -H "X-aws-ec2-metadata-token-ttl-seconds: 300") || tok=""
+    if [ -n "$tok" ]; then
+      md() { curl -fsS -m 5 -H "X-aws-ec2-metadata-token: $tok" "http://169.254.169.254/latest/meta-data/$1"; }
+      printf '{"provider":"aws","instance_type":"%s","instance_id":"%s","region":"%s","availability_zone":"%s"}\n' "$(md instance-type)" "$(md instance-id)" "$(md placement/region)" "$(md placement/availability-zone)" > /etc/openar-sandbox/host-facts.json
+    fi
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - chmod a+r /etc/apt/keyrings/docker.asc
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  - usermod -aG docker ${ssh_user}
+  - touch /var/lib/cloud/instance/sandbox-ready
+%{ if lifetime_minutes > 0 ~}
+  # Dead-man switch. On AWS the instance is set to terminate on shutdown, so this ends billing.
+  - shutdown -h +${lifetime_minutes} "OpenAR sandbox reached its maximum lifetime"
+%{ endif ~}

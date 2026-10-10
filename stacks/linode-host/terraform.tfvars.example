@@ -1,0 +1,7 @@
+# Copy to terraform.tfvars (which git ignores) and fill in.
+# The API token goes in the LINODE_TOKEN environment variable, never in this file.
+name             = "benchmark-run"
+region           = "us-east"
+instance_type    = "g6-dedicated-8"
+ssh_public_key   = "ssh-ed25519 AAAA... you@example.com"
+allowed_ssh_cidr = "203.0.113.7/32"
