@@ -1,0 +1,7 @@
+# These paths decide who can reach a host, how long it lives, and what the
+# sandbox account is allowed to do, so changes need a maintainer's review.
+/stacks/ @RobGrafrath
+/policies/ @RobGrafrath
+/shared/ @RobGrafrath
+/.github/ @RobGrafrath
+/scripts/ @RobGrafrath

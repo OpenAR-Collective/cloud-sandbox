@@ -1,0 +1,36 @@
+name: Validate
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Read-only, and deliberately no cloud credentials anywhere in this workflow.
+# This repository launches infrastructure, so CI must never be able to apply
+# anything. Do not add pull_request_target or any secret to this job.
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.13.0
+          tofu_wrapper: false
+      - name: Repository checks (style, no state or secrets committed)
+        run: python3 scripts/check-repo.py
+      - name: Formatting
+        run: tofu fmt -check -recursive
+      - name: Validate each stack
+        run: |
+          set -e
+          for stack in stacks/*/; do
+            echo "== $stack"
+            tofu -chdir="$stack" init -backend=false -input=false
+            tofu -chdir="$stack" validate
+          done
