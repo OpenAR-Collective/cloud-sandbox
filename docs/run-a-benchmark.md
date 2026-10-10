@@ -2,7 +2,7 @@
 
 The routine for one run, from signing in to tearing the host down and recording what it cost. It is written for a person at a terminal, or a person working with an assistant, who has already been through [aws-account-setup.md](aws-account-setup.md). It covers the host. What to run on the host belongs to the experiment's own instructions.
 
-Treat every run as one trip: create the host, use it, copy the results off, destroy it. Nothing on the host is the source of record, and the host deletes itself when its timer ends.
+By default, treat a run as one trip: create the host, use it, copy the results off, destroy it. For a test campaign of several runs, the Foundation may keep one host for the campaign instead, as [Keeping a host for a campaign](#keeping-a-host-for-a-campaign) describes. Either way, nothing on the host is the source of record, and the host deletes itself when its timer ends.
 
 ## Before you start
 
@@ -141,6 +141,21 @@ If you forget this step, the timer ends the host for you, but the step above sti
 ## 10. Record what it cost
 
 Billing data runs hours behind. The next day, open Cost Explorer in the management account, filter by the `Project` tag set to `openar-cloud-sandbox`, and record the run's cost next to its results, with the instance type and the hours. The first few of these replace the estimates in this repository with real numbers. The `Project` and `Owner` tags only appear in Cost Explorer after they are activated as cost allocation tags, which [aws-account-setup.md](aws-account-setup.md) covers.
+
+## Keeping a host for a campaign
+
+When one host serves several runs over days, as in a production-scale test campaign, rebuilding it for every run would repeat work and add nothing. The Foundation's decision is to keep such a host as long as the campaign needs it. The rest of this page still applies. What changes is that the host stays up between runs, so the cost and the timer need more attention:
+
+- **Set the timer to the campaign, on purpose.** Choose `max_lifetime_hours` for the whole campaign before the first apply, such as 168 for a week, and write the end date in the run log. A forgotten campaign host still ends itself, but only at that limit.
+- **Know the daily cost.** An idle host costs the same as a busy one. At roughly $1 an hour for 16 vCPUs and roughly twice that for 32 vCPUs (check current pricing), that is about $24 and $48 a day. The $1,000 monthly ceiling is about three weeks of a 32 vCPU host running all day. The budget action blocks new launches but does not stop a running host, so the timer is what ends it.
+- **Look at it every day it exists.** Run `shutdown --show` to see the timer, and open Cost Explorer for the `Project` tag to see the spend so far.
+- **Never stop the host to save money.** The local disk is lost whenever the host stops, and a shutdown from inside terminates the instance. First boot does not run again after a stop and start, so the lifetime timer would be gone, and Docker would quietly fall back to the much slower root disk because the local disk is no longer mounted where it expects. A host is either running or gone.
+- **Do not reboot it without re-arming the timer.** A reboot keeps the local disk but clears the scheduled shutdown. If a reboot is unavoidable, run `sudo shutdown -h +N "re-armed by <your name>"` straight afterward and check `shutdown --show`.
+- **Keep the host from changing under the experiment.** Turn off automatic package updates for the campaign, for example `sudo systemctl disable --now unattended-upgrades apt-daily-upgrade.timer`, so the kernel and Docker do not drift or reboot the host mid-campaign. Record the versions with each run's results.
+- **Reset between runs as the experiment says.** The data on the host persists across runs, so reseed or clean it according to the experiment's instructions, and record which state each run started from.
+- **Copy results off after every run,** not only at the end. A host can disappear for reasons you did not choose.
+- **Extend from the inside, as in [Watch the clock](#7-watch-the-clock),** if the campaign overruns, and record the new end date.
+- **End it when the campaign ends.** Run `tofu destroy`, check that nothing is left (step 9), and record the campaign's total cost (step 10).
 
 ## When something goes wrong
 

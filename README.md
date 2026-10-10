@@ -8,7 +8,7 @@ The first workload is performance benchmarking of database-backed software, whic
 
 ## Principles
 
-- **Nothing stays up.** Every host is expected to be destroyed within hours or days. The tooling makes the destroy path as easy as the create path, and adds a backstop where the provider allows one. See [docs/cost-guardrails.md](docs/cost-guardrails.md).
+- **Nothing stays up without an end date.** A host exists for one run or for a named test campaign, and its lifetime timer always ends it. Every host is expected to be destroyed within hours or days, or when its campaign ends. The tooling makes the destroy path as easy as the create path, and adds a backstop where the provider allows one. See [docs/cost-guardrails.md](docs/cost-guardrails.md).
 - **No Foundation or agency data.** The sandbox holds synthetic data only, such as the output of the mock collections data generator. Real account data never goes here.
 - **One person's mistake is cheap.** SSH is open to one address, never the world. There are no long-lived credentials in this repository, and state files and variable files are git-ignored.
 - **Provider-neutral where it is free to be.** Each provider gets its own small stack. Shared first-boot setup lives in [shared/cloud-init.yaml](shared/cloud-init.yaml), so the machine you land on looks the same on either one.

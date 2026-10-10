@@ -8,7 +8,7 @@ Every run ends with `tofu destroy`. Tag and name hosts after the experiment, suc
 
 ## 2. A timer inside the host (AWS)
 
-`max_lifetime_hours` defaults to 12. First boot runs `shutdown -h +N`, and the instance is configured with `instance_initiated_shutdown_behavior = "terminate"`, so a forgotten host deletes itself and its root disk. Set the value you need before the first apply. Changing it later replaces the host, because the value is part of the first-boot script, so a running host is extended from the inside instead, as [run-a-benchmark.md](run-a-benchmark.md#7-watch-the-clock) describes. Review any change to that value.
+`max_lifetime_hours` defaults to 12. First boot runs `shutdown -h +N`, and the instance is configured with `instance_initiated_shutdown_behavior = "terminate"`, so a forgotten host deletes itself and its root disk. Set the value you need before the first apply. Changing it later replaces the host, because the value is part of the first-boot script, so a running host is extended from the inside instead, as [run-a-benchmark.md](run-a-benchmark.md#7-watch-the-clock) describes. Review any change to that value. A host kept for a test campaign gets a timer set to the campaign's length, an end date in the run log, and a daily look, as [run-a-benchmark.md](run-a-benchmark.md#keeping-a-host-for-a-campaign) describes.
 
 **Linode has no equivalent.** A powered-off Linode keeps billing, so a shutdown timer would only hide the problem. Until a reaper exists, Linode hosts depend on layers 1, 3, and 4.
 
