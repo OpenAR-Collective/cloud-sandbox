@@ -94,6 +94,16 @@ AWS has no setting that refuses all spending after a threshold. The cap comes fr
 6. Add an **organization policy (SCP)** on the sandbox account that denies every region except the ones in use, to start with only `us-east-1`. The policy is in [../policies/sandbox-region-scp.json](../policies/sandbox-region-scp.json). It exempts a short list of global services that do not work with a region restriction, based on AWS's published pattern, so test the sign-in after attaching it and extend the list if a global service breaks. Attach it to the sandbox account and not to the organization root. This stops a mistaken or stolen session from launching hosts somewhere nobody is watching.
 7. In the sandbox account, request **service quota** increases only for what the next real run needs, such as the vCPU limit for On-Demand Standard instances. This quota is also the main spending cap (see [What actually caps spending](#what-actually-caps-spending)), so do not raise it further than needed. **Do not request GPU quota**: the GPU families are undecided, and the request can wait until an experiment exists.
 
+### Locking down the sandbox account's root user
+
+A member account created through Organizations starts with **no root credentials** (no password, access keys, or MFA), so it has no root login to protect. Centralized root access management makes that permanent: AWS blocks the forgot-password flow for member accounts that have no root credentials, so nobody can set a password through the account's mailbox.
+
+1. In the management account, open **IAM, Root access management**, and enable **root credentials management** and **privileged root actions in member accounts**. Leave the delegated administrator blank unless you have a reason to name one.
+2. **The management account's own root user cannot read the member account's status or take privileged actions.** AWS refuses with "RootSession may not be assumed by root accounts", and the credentials column shows Access denied. You need a regular IAM principal in the management account, such as an Identity Center user.
+3. To check, as the root user create a temporary permission set (for example `ManagementAdminTemporary`, AdministratorAccess, 1 hour session) and assign it to your own Identity Center user on the management account. Sign out of root, then sign in through the access portal to the management account with that permission set.
+4. In IAM, Root access management, the member account's **Root user credentials** column should read **Not present**. If it lists credentials instead, use **Take privileged action** to audit and delete them.
+5. Remove the assignment (and the permission set, if you do not want a standing route) when you are done.
+
 ## Part 5: Set up your laptop
 
 1. Install the AWS CLI (`winget install Amazon.AWSCLI`), then open a new terminal.
