@@ -25,12 +25,12 @@ SECRET_PATTERNS = (
     ("private key block", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
 )
 BAD_CHARS = {
-    "—": "em dash",
-    "–": "en dash",
-    "‘": "curly single quote",
-    "’": "curly single quote",
-    "“": "curly double quote",
-    "”": "curly double quote",
+    chr(0x2014): "em dash",
+    chr(0x2013): "en dash",
+    chr(0x2018): "curly single quote",
+    chr(0x2019): "curly single quote",
+    chr(0x201C): "curly double quote",
+    chr(0x201D): "curly double quote",
 }
 
 
