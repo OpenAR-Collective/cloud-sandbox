@@ -6,6 +6,14 @@ Contributions are accepted under the [Developer Certificate of Origin, Version 1
 
 The Foundation does not require a Contributor License Agreement; you retain copyright in your contributions. All contributions are accepted under the Apache License, Version 2.0 (see [LICENSE](LICENSE)).
 
+## If you forgot the sign-off
+
+Either amend and force-push your branch (`git commit --amend -s && git push -f`), or post a comment on the pull request stating: "I certify the contents of this contribution under the DCO, Signed-off-by: Your Name <you@example.com>". A maintainer will proceed. The DCO check stays red in that case, and the comment is the record that satisfies the policy.
+
+## Checks
+
+Every pull request runs two checks: `dco` (sign-offs) and `validate` (formatting, `tofu validate` on each stack, and `scripts/check-repo.py`, which rejects committed state files, variable files, keys, and dash or quote style problems). Run `python3 scripts/check-repo.py` locally before you push. These checks never have cloud credentials, and they must not be given any.
+
 ## Practical notes
 
 - Run `tofu fmt -recursive` and `tofu validate` in any stack you change.
