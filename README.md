@@ -20,7 +20,7 @@ The first workload is performance benchmarking of database-backed software, whic
 | [stacks/aws-host](stacks/aws-host) | One Ubuntu host on AWS EC2, with a self-terminating timer |
 | [stacks/linode-host](stacks/linode-host) | One Ubuntu host on Linode, behind a Cloud Firewall |
 | [shared/cloud-init.yaml](shared/cloud-init.yaml) | First-boot setup: Docker, PostgreSQL client, diagnostics tools |
-| [docs](docs) | AWS account setup, workload shapes, provider comparison, and cost guardrails |
+| [docs](docs) | AWS account setup, a runbook for one benchmark run, workload shapes, provider comparison, and cost guardrails |
 
 ## Using a stack
 
@@ -37,6 +37,8 @@ tofu destroy
 ```
 
 Credentials come from the provider's standard environment variables (`AWS_PROFILE` or `AWS_ACCESS_KEY_ID`, and `LINODE_TOKEN`). They are never written into this repository.
+
+For the whole routine of one benchmark run on AWS, from signing in to tearing down and recording the cost, follow [docs/run-a-benchmark.md](docs/run-a-benchmark.md).
 
 ## Whose account
 
